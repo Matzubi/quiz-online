@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Xcode / Swift
+xcuserdata/
+DerivedData/
+*.xcworkspace
+
+# Node.js
+node_modules/
+dist/
+
+# Env files
+.env
+.env.*

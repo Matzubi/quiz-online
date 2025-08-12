@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node-services:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Root dev tools (Prettier). Safe even if you only have package.json at root.
+      - name: Install root dev deps
+        if: hashFiles('package.json') != ''
+        run: npm ci || npm i
+
+      - name: Prettier format check
+        run: npx prettier -c "**/*.{js,ts,md,json,yaml,yml}"
+
+      # Install per-service deps so they stay healthy
+      - name: Install gateway deps
+        run: npm ci --prefix svc/gateway
+
+      - name: Install ingest deps
+        run: npm ci --prefix svc/event-ingest
+
+      - name: Install consumer deps
+        run: npm ci --prefix stream/consumer

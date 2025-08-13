@@ -14,3 +14,6 @@ fmt:
 
 test:
 	@echo "No tests yet"
+
+up:  ; docker compose -f infra/compose/docker-compose.yml up -d
+down:; docker compose -f infra/compose/docker-compose.yml down

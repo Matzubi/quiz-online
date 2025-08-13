@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: quiz_pg
+    environment:
+      POSTGRES_USER: quiz
+      POSTGRES_PASSWORD: quizpass
+      POSTGRES_DB: quizdb
+    ports: ['5432:5432']
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+
+  redis:
+    image: redis:7-alpine
+    container_name: quiz_redis
+    ports: ['6379:6379']
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: quiz_ch
+    environment:
+      - CLICKHOUSE_DB=analytics
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    ports:
+      - '8123:8123' # HTTP
+      - '9000:9000' # Native
+    volumes:
+      - ./clickhouse/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: quiz_grafana
+    ports: ['3000:3000']
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - clickhouse
